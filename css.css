@@ -1,0 +1,17 @@
+#hans {
+	image-rendering: pixelated;
+	width: 50%;
+	max-height: 50%;
+}
+
+#errors {
+	padding: 0;
+}
+
+#errors li {
+	display: none;
+}
+
+#errors li.show {
+	display: initial;
+}

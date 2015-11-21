@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+	<head>
+		<title>Clever Hans!</title>
+		<link rel="stylesheet" href="css.css"></link>
+	</head>
+	<body>
+		<h1>Ask Clever Hans a question</h1>
+		<ul id="errors">
+			<li id="no-speech-recognition">Your browser doesn't support speech recognition, so Hans can't hear you. If you can, try Chrome.</li>
+			<li id="speech-not-allowed">Speech recognition is not allowed, so Hans can't hear you. Please enable your microphone.</li>
+		</ul>
+		<img src="images/horse.png" id="hans">
+		<div id="interim"></div>
+		<div id="final"></div>
+
+
+	<script type="grammar" id="grammar">
+		Expression
+		 = ("clever hans "/"") question:question { return question }
+		 
+		question
+		 = question:("what is"/"what's"/"can you tell me"/"") " "? terms:terms { return {question: question, terms: terms} }
+
+		terms
+		 = n:atom ops:(" "* op:op " "* {return op})* { return [n].concat(ops)}
+
+		op
+		 = "all "? "squared" { return {op:"squared"} }
+		 / op:(add/multiply/subtract/divide) " "? n:atom { return {op:op, n:n} }
+
+		atom
+		 = n:number " "* "squared" { return {op:"squared",n:n} }
+		 / number
+		 / ("the square root of"/"root"/"route"/"√") " "? {return {op:"sqrt", n: term} }
+		 
+		add = ("+"/"add"/"plus") {return "+"}
+		multiply = ("×"/"x"/"times"/"multiplied by") {return "*"}
+		subtract = ("-"/"minus"/"take away"/"takeaway"/"take-away") {return "-"}
+		divide = ("÷"/"divided by"/"over") {return "/"}
+
+		number
+		 = digits:([0-9]+) { return {number: parseInt(digits.join(''))} }
+		 / "one" {return {number: 1}}
+		 / ("two"/"to"/"too") {return {number: 2}}
+		 / "three" {return {number: 3}}
+		 / ("four"/"for") {return {number: 4}}
+		 / "five" {return {number: 5}}
+		 / "six" {return {number: 6}}
+		 / "seven" {return {number: 7}}
+		 / ("eight"/"ate") {return {number: 8}}
+		 / "nine" {return {number: 9}}
+		 / "zero" {return {number: 0}}
+	</script>
+
+		 <script src="peg.js"></script>
+		 <script src="js.js"></script>
+	</body>
+</html>
