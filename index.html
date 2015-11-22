@@ -30,21 +30,27 @@
 		 = question:("what is"/"what's"/"can you tell me"/"") " "? terms:terms { return {question: question, terms: terms} }
 
 		terms
-		 = n:atom ops:(" "* op:op " "* {return op})* { return [n].concat(ops)}
+		 = n:atom ops:(space op:op space {return op})* { return [n].concat(ops)}
 
 		op
 		 = "all "? "squared" { return {op:"squared"} }
 		 / op:(add/multiply/subtract/divide) " "? n:atom { return {op:op, n:n} }
 
 		atom
-		 = n:number " "* op:("squared"/"factorial") { return {op:op,n:n} }
+		 = n:number space op:("squared"/"factorial") { return {op:op,n:n} }
 		 / ("the square root of"/"root"/"route"/"√") " "? n:number {return {op:"sqrt", n:n } }
+		 / op:(gcd/lcm) space a:terms space "and" space b:terms { return {op:op, a:a, b:b} }
 		 / number
 		 
 		add = ("+"/"add"/"plus") {return "+"}
 		multiply = ("×"/"x"/"times"/"multiplied by") {return "*"}
 		subtract = ("-"/"minus"/"take away"/"takeaway"/"take-away") {return "-"}
 		divide = ("÷"/"divided by"/"over") {return "/"}
+
+		gcd = ("the greatest common factor of"/"the greatest common divisor of"/"the gcd of"/"the gcf of"/"the biggest number that divides") { return "gcd" }
+		lcm = ("the least common multiple of"/"the lcm of"/"the smallest multiple of both") { return "lcm" }
+
+		space = " "*
 
 		number
 		 = digits:([0-9]+) { return {number: parseInt(digits.join(''))} }

@@ -195,7 +195,10 @@ Hans.prototype = {
 			this.play_sound(frame.sound);
 		}
 		this.set_frame(frame.frame);
-		setTimeout(function() {
+		if(this.next_frame_timeout) {
+			clearTimeout(this.next_frame_timeout);
+		}
+		this.next_frame_timeout = setTimeout(function() {
 			h.next_frame();
 		},frame.duration);
 	},
@@ -256,36 +259,48 @@ function evaluate(terms,n) {
 		if(term.number!==undefined) {
 			n = term.number;
 		} else if(term.op) {
-			switch(term.op) {
-				case '+':
-					n += evaluate([term.n]);
-					break;
-				case '-':
-					n -= evaluate([term.n]);
-					break;
-				case '*':
-					n *= evaluate([term.n]);
-					break;
-				case '/':
-					n /= evaluate([term.n]);
-					break;
-				case 'sqrt':
-					n = term.n!==undefined ? evaluate([term.n]) : n;
-					n = Math.sqrt(n);
-					break;
-				case 'squared':
-					n = term.n!==undefined ? evaluate([term.n]) : n;
-					n = n*n;
-					break;
-				case 'factorial':
-					n = term.n!==undefined ? evaluate([term.n]) : n;
-					n = factorial(n);
-					break;
-			}
+			n = ops[term.op](term,n);
 		}
 	});
 
 	return n;
+}
+
+var ops = {
+	'+': function(term,n) {
+		return n + evaluate([term.n]);
+	},
+	'-': function(term,n) {
+		return n - evaluate([term.n]);
+	},
+	'*': function(term,n) {
+		return n * evaluate([term.n]);
+	},
+	'/': function(term,n) {
+		return n / evaluate([term.n]);
+	},
+	'sqrt': function(term,n) {
+		n = term.n!==undefined ? evaluate([term.n]) : n;
+		return Math.sqrt(n);
+	},
+	'squared': function(term,n) {
+		n = term.n!==undefined ? evaluate([term.n]) : n;
+		return n*n;
+	},
+	'factorial': function(term,n) {
+		n = term.n!==undefined ? evaluate([term.n]) : n;
+		return factorial(n);
+	},
+	'gcd': function(term,n) {
+		a = Math.floor(evaluate(term.a));
+		b = Math.floor(evaluate(term.b));
+		return gcd(a,b);
+	},
+	'lcm': function(term,n) {
+		a = Math.floor(evaluate(term.a));
+		b = Math.floor(evaluate(term.b));
+		return lcm(a,b);
+	},
 }
 
 function factorial(n) {
@@ -298,6 +313,17 @@ function factorial(n) {
 		t *= i;
 	}
 	return t;
+}
+function gcd(a,b) {
+	while(b>=1) {
+		var t = a%b;
+		a = b;
+		b = t;
+	}
+	return a;
+}
+function lcm(a,b) {
+	return a*b/gcd(a,b);
 }
 
 var hans = new Hans();
