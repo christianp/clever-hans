@@ -83,13 +83,15 @@ function Hans() {
 	r.start();
 
 	document.body.onclick = function() {
-		r.start();
+		if(h.state=='not-listening') {
+			r.start();
+			h.play_sound('hrmph');
+		}
 	}
 
 	r.onstart = function() {
 		h.set_state('listening');
 		h.set_frame('head-down');
-		//error('speech-not-allowed',true);
 	}
 
 	r.onerror = function(e) {
@@ -121,6 +123,11 @@ function Hans() {
 		h.set_state('not-listening');
 	}
 
+	window.onresize = function() {
+		h.resize();
+	}
+
+
 	var twitchAcc = 0;
 	setInterval(function() {
 		if(h.state!='listening') {
@@ -142,9 +149,17 @@ function Hans() {
 			h.animate(animation);
 		}
 	},500);
+	h.resize();
 }
 Hans.prototype = {
-	set_state(state) {
+	resize: function() {
+		var w = window.innerWidth*0.9;
+		var h = window.innerHeight-130;
+		h = h*200/165;
+		w = Math.min(w,h);
+		document.getElementById('hans').style.width = w+'px';
+	},
+	set_state: function(state) {
 		console.log('state',state);
 		document.getElementById('status').innerText = state_descriptions[state];
 		this.state = state;
