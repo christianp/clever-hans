@@ -1,7 +1,26 @@
+@font-face {
+	font-family: 'Chunk';
+	src: url('fonts/Chunkfive-webfont.eot');
+	src: url('fonts/Chunkfive-webfont.woff') format('woff'),
+		 url('fonts/Chunkfive-webfont.ttf') format('ttf'),
+		 url('fonts/Chunkfive-webfont.svg') format('svg');
+}
+
+html{
+	font-family: 'Chunk';
+	font-size: 18px;
+}
+
+h1 {
+	text-align: center;
+}
+
 #hans {
 	image-rendering: pixelated;
 	width: 50%;
 	max-height: 50%;
+	display: block;
+	margin: 1em auto;
 }
 
 #errors {
@@ -14,4 +33,24 @@
 
 #errors li.show {
 	display: initial;
+}
+
+#status {
+	text-align: center;
+}
+
+#status .listening, #status.listening .not-listening {
+	display: none;
+}
+
+#status.listening .listening, #status .not-listening {
+	display: block;
+}
+
+#about {
+	margin-top: 15em;
+	color: #888;
+}
+#about a {
+	color: #AA9FDF;
 }

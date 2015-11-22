@@ -30,9 +30,10 @@ var animations = {
 		{frame: 'normal',duration:50}
 	],
 	'not-understood': [
-		{frame: 'head-down',duration:150,sound:'hrmph',state:'not-understood'},
+		{frame: 'head-down',duration:150,sound:'neigh',state:'not-understood'},
 		{frame: 'normal',duration:50},
 		{frame: 'ear-twitch',duration:50},
+		{frame: 'normal',duration:500},
 		{frame: 'normal',duration:50, state:'listening'}
 	],
 	'start-counting': [
@@ -60,6 +61,13 @@ for(var s in sounds) {
 	sounds[s] = new Audio('sounds/'+sounds[s])
 }
 
+var state_descriptions = {
+	'not-listening': 'Hans is not listening. Tap to get his attention.',
+	'listening': 'Hans is listening.',
+	'answering': 'Hans has the answer!',
+	'not-understood': 'Neigh?'
+}
+
 function Hans() {
 	var h = this;
 	h.set_frame('normal');
@@ -74,12 +82,18 @@ function Hans() {
 
 	r.start();
 
+	document.body.onclick = function() {
+		r.start();
+	}
+
 	r.onstart = function() {
 		h.set_state('listening');
+		h.set_frame('head-down');
 		//error('speech-not-allowed',true);
 	}
 
 	r.onerror = function(e) {
+		console.log("Speech error",e.error,e);
 		switch(e.error) {
 			case 'not-allowed':
 				error('speech-not-allowed');
@@ -104,6 +118,7 @@ function Hans() {
 	} 
 	r.onend = function() {
 		//r.start();
+		h.set_state('not-listening');
 	}
 
 	var twitchAcc = 0;
@@ -118,13 +133,11 @@ function Hans() {
 		if(Math.random()<0.2) {
 			twitchAcc = 3;
 			var animation;
-			if(Math.random()<0.5) {
+			if(Math.random()<0.8) {
 				animation = animations['twitch'];
 			} else {
 				animation = animations['head-shake'];
-			}
-			if(Math.random()<0.1) {
-				//h.play_sound('hrmph');
+				h.play_sound('hrmph');
 			}
 			h.animate(animation);
 		}
@@ -133,6 +146,7 @@ function Hans() {
 Hans.prototype = {
 	set_state(state) {
 		console.log('state',state);
+		document.getElementById('status').innerText = state_descriptions[state];
 		this.state = state;
 		switch(state) {
 			case 'not-listening':
@@ -140,6 +154,7 @@ Hans.prototype = {
 				break;
 			case 'listening':
 				this.set_frame('head-down');
+				document.getElementById('status').classList.add('listening');
 				break;
 			case 'not-understood':
 				this.set_frame('ear-twitch');
@@ -185,8 +200,8 @@ Hans.prototype = {
 			question = question.trim().toLowerCase();
 			var result = parser.parse(question);
 		} catch(e) {
-			this.reply('neigh');
-			this.set_state('not-understood');
+			this.animate(animations['not-understood']);
+			return;
 		}
 
 		if(!result) {
@@ -216,8 +231,6 @@ Hans.prototype = {
 
 	reply: function(msg) {
 		console.log(msg);
-		//var final = document.getElementById('final');
-		//final.innerHTML += '<p>'+msg+'</p>';  
 	},
 
 }
@@ -242,24 +255,34 @@ function evaluate(terms,n) {
 					n /= evaluate([term.n]);
 					break;
 				case 'sqrt':
-					if(term.n!==undefined) {
-						n = Math.sqrt(evaluate([term.n]))
-					} else {
-						n = Math.sqrt(n);
-					}
+					n = term.n!==undefined ? evaluate([term.n]) : n;
+					n = Math.sqrt(n);
 					break;
 				case 'squared':
-					if(term.n!==undefined) {
-						n = Math.pow(evaluate([term.n]),2);
-					} else {
-						n = Math.pow(n,2);
-					}
+					n = term.n!==undefined ? evaluate([term.n]) : n;
+					n = n*n;
+					break;
+				case 'factorial':
+					n = term.n!==undefined ? evaluate([term.n]) : n;
+					n = factorial(n);
 					break;
 			}
 		}
 	});
 
 	return n;
+}
+
+function factorial(n) {
+	n = Math.floor(n);
+	if(n<=1) {
+		return 1;
+	}
+	var t = 1
+	for(var i=2;i<=n;i++) {
+		t *= i;
+	}
+	return t;
 }
 
 var hans = new Hans();

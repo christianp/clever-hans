@@ -11,9 +11,14 @@
 			<li id="speech-not-allowed">Speech recognition is not allowed, so Hans can't hear you. Please enable your microphone.</li>
 		</ul>
 		<img src="images/horse.png" id="hans">
+		<div id="status">
+		</div>
 		<div id="interim"></div>
-		<div id="final"></div>
 
+		<div id="about">
+			<p><a href="http://query.nytimes.com/mem/archive-free/pdf?res=9E02E2D91F3AE733A25757C0A96F9C946597D6CF">Hans who?</a></p>
+			<p>Brought to you by <a href="http://somethingorotherwhatever.com">cp</a>.</p>
+		</div>
 
 	<script type="grammar" id="grammar">
 		Expression
@@ -30,9 +35,9 @@
 		 / op:(add/multiply/subtract/divide) " "? n:atom { return {op:op, n:n} }
 
 		atom
-		 = n:number " "* "squared" { return {op:"squared",n:n} }
+		 = n:number " "* op:("squared"/"factorial") { return {op:op,n:n} }
+		 / ("the square root of"/"root"/"route"/"√") " "? n:number {return {op:"sqrt", n:n } }
 		 / number
-		 / ("the square root of"/"root"/"route"/"√") " "? {return {op:"sqrt", n: term} }
 		 
 		add = ("+"/"add"/"plus") {return "+"}
 		multiply = ("×"/"x"/"times"/"multiplied by") {return "*"}
