@@ -48,8 +48,25 @@ var animations = {
 		{frame:'ear-twitch',duration:50},
 		{frame:'normal',duration:100},
 		{frame:'head-down',duration:100}
+	],
+	'love': [
+		{frame: 'head-down',duration:150, state: 'love', sound: 'neigh'},
+		{frame: 'normal',duration:50},
+		{frame: 'head-up',duration:150},
+		{frame: 'normal',duration:50},
+		{frame: 'head-down',duration:150},
+		{frame: 'normal',duration:50},
+		{frame: 'head-up',duration:150},
+		{frame: 'normal',duration:50},
+		{frame: 'ear-twitch',duration:50},
+		{frame: 'normal',duration:100},
+		{frame: 'ear-twitch',duration:50},
+		{frame: 'normal',duration:100},
+		{frame: 'ear-twitch',duration:50},
+		{frame: 'normal',duration: 500},
+		{frame: 'head-down',duration: 500},
+		{frame: 'normal',duration: 100, state: 'listening'}
 	]
-
 }
 
 var sounds = {
@@ -65,7 +82,8 @@ var state_descriptions = {
 	'not-listening': 'Hans is not listening. Tap to get his attention.',
 	'listening': 'Hans is listening.',
 	'answering': 'Hans has the answer!',
-	'not-understood': 'Neigh?'
+	'not-understood': 'Neigh?',
+	'love': 'Hans loves you too!'
 }
 
 function Hans() {
@@ -76,6 +94,9 @@ function Hans() {
 		error('no-speech-recognition');
 		return;
 	}
+
+	h.listening = false;
+
 	var r = this.recognition = new webkitSpeechRecognition();
 	r.continuous = true;
 	r.interimResults = true;
@@ -83,7 +104,9 @@ function Hans() {
 	r.start();
 
 	document.body.onclick = function() {
-		if(h.state=='not-listening') {
+		if(h.listening) {
+			r.stop();
+		} else {
 			r.start();
 			h.play_sound('hrmph');
 		}
@@ -92,6 +115,7 @@ function Hans() {
 	r.onstart = function() {
 		h.set_state('listening');
 		h.set_frame('head-down');
+		h.listening = true;
 	}
 
 	r.onerror = function(e) {
@@ -121,6 +145,7 @@ function Hans() {
 	r.onend = function() {
 		//r.start();
 		h.set_state('not-listening');
+		h.listening = false;
 	}
 
 	window.onresize = function() {
@@ -218,25 +243,37 @@ Hans.prototype = {
 			question = question.trim().toLowerCase();
 			var result = parser.parse(question);
 		} catch(e) {
-			this.animate(animations['not-understood']);
-			return;
+			return this.neigh();
 		}
 
 		if(!result) {
-			this.animate(animations['not-understood']);
-			return;
+			return this.neigh();
 		}
 
 		this.set_state('answering');
 
 		this.reply(JSON.stringify(result));
 
-		var n = evaluate(result.terms);
+		switch(result.question) {
+			case 'calculate':
+				this.calculate(result.terms);
+				break;
+			case 'love':
+				this.animate(animations['love']);
+				break;
+		}
+	},
+
+	neigh: function() {
+		this.animate(animations['not-understood']);
+	},
+
+	calculate: function(terms) {
+		var n = evaluate(terms);
 		this.reply(n);
 
-		if(n<1) {
-			this.animate(animations['not-understood']);
-			return;
+		if(n<1 || n>100) {
+			return this.neigh();
 		}
 
 		var animation = animations['start-counting'].slice();
@@ -279,6 +316,9 @@ var ops = {
 	'/': function(term,n) {
 		return n / evaluate([term.n]);
 	},
+	'^': function(term,n) {
+		return Math.pow(n,evaluate([term.n]));
+	},
 	'sqrt': function(term,n) {
 		n = term.n!==undefined ? evaluate([term.n]) : n;
 		return Math.sqrt(n);
@@ -286,6 +326,10 @@ var ops = {
 	'squared': function(term,n) {
 		n = term.n!==undefined ? evaluate([term.n]) : n;
 		return n*n;
+	},
+	'cubed': function(term,n) {
+		n = term.n!==undefined ? evaluate([term.n]) : n;
+		return n*n*n;
 	},
 	'factorial': function(term,n) {
 		n = term.n!==undefined ? evaluate([term.n]) : n;

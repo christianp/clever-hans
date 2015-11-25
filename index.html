@@ -27,25 +27,34 @@
 		 = ("clever hans "/"") question:question { return question }
 		 
 		question
-		 = question:("what is"/"what's"/"can you tell me"/"") " "? terms:terms { return {question: question, terms: terms} }
+		 = question:("what is"/"what's"/"can you tell me"/"") " "? terms:terms { return {question: "calculate", terms: terms} }
+		 / "i love you" space "hans"? { return {question:"love"} }
 
 		terms
 		 = n:atom ops:(space op:op space {return op})* { return [n].concat(ops)}
 
 		op
 		 = "all "? "squared" { return {op:"squared"} }
-		 / op:(add/multiply/subtract/divide) " "? n:atom { return {op:op, n:n} }
+		 / op:binaryop " "? n:atom { return {op:op, n:n} }
 
 		atom
-		 = n:number space op:("squared"/"factorial") { return {op:op,n:n} }
+		 = n:number space op:("squared"/"cubed"/"factorial") { return {op:op,n:n} }
 		 / ("the square root of"/"root"/"route"/"√") " "? n:number {return {op:"sqrt", n:n } }
 		 / op:(gcd/lcm) space a:terms space "and" space b:terms { return {op:op, a:a, b:b} }
 		 / number
+
+		binaryop
+			= add 
+			/ multiply 
+			/ subtract
+			/ divide
+			/ power
 		 
 		add = ("+"/"add"/"plus") {return "+"}
 		multiply = ("×"/"x"/"times"/"multiplied by") {return "*"}
 		subtract = ("-"/"minus"/"take away"/"takeaway"/"take-away") {return "-"}
 		divide = ("÷"/"divided by"/"over") {return "/"}
+		power = ("^"/"to the"/"to the power of") {return "^"}
 
 		gcd = ("the greatest common factor of"/"the greatest common divisor of"/"the gcd of"/"the gcf of"/"the biggest number that divides") { return "gcd" }
 		lcm = ("the least common multiple of"/"the lcm of"/"the smallest multiple of both") { return "lcm" }
