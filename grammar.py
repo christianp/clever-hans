@@ -31,9 +31,14 @@ grammar = Grammar("""
          /  atom_function
          /  number
 
-        atom_unary = number space ("squared"/"cubed"/"factorial")
-        atom_root = ("the square root of"/"root"/"route"/"√") " "? number
+        atom_unary = number space unaryop
+        atom_root = (("the "? "square root" " of"?)/"root"/"route"/"√") " "? number
         atom_function = (gcd/lcm) space terms space "and" space terms
+
+        unaryop
+            = "squared"
+            / "cubed"
+            / "factorial"
 
         binaryop
             = add 
@@ -44,12 +49,12 @@ grammar = Grammar("""
          
         add = ("+"/"add"/"plus") 
         multiply = ("×"/"x"/"times"/"multiplied by") 
-        subtract = ("-"/"minus"/"take away"/"takeaway"/"take-away") 
+        subtract = ("-"/"minus"/"take away"/"takeaway"/"take-away"/"subtract") 
         divide = ("÷"/"divided by"/"over") 
         power = ("^"/"to the power of"/"to the") 
 
-        gcd = "the greatest common factor of"/"the greatest common divisor of"/"the gcd of"/"the gcf of"/"the biggest number that divides"
-        lcm = "the least common multiple of"/"the lcm of"/"the smallest multiple of both"
+        gcd = "the "? ("greatest common factor of"/"greatest common divisor of"/"gcd of"/"gcf of"/("biggest number that divides" " both"?))
+        lcm = "the "? ("least common multiple of"/"lcm of"/("smallest multiple of" " both"?))
 
         space = (" "*)
 
@@ -159,6 +164,9 @@ class HansVisitor(NodeVisitor):
     def visit_op_all_squared(self,node,visited_children):
         return ('squared',None)
 
+    def visit_unaryop(self,node,visited_children):
+        return node.text
+
     def visit_atom_unary(self,node,visited_children):
         n,_,op = visited_children
         return unary_ops[op](n)
@@ -213,10 +221,10 @@ class HansVisitor(NodeVisitor):
             return visited_children[0]
         else:
             return node.text
-    
+
 if __name__ == '__main__':
     import sys
     text = sys.argv[1]
-    visitor=HansVisitor()
+    visitor = HansVisitor()
     result = visitor.parse(text)
     print(': ',result)
