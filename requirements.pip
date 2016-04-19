@@ -1,0 +1,4 @@
+PyAudio==0.2.9
+RPi.GPIO==0.6.1
+SpeechRecognition==3.4.3
+parsimonious==0.6.2
