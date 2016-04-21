@@ -27,12 +27,16 @@ grammar = Grammar("""
 
         atom
          =  atom_unary
+         /  atom_square_root
+         /  atom_cube_root
          /  atom_root
          /  atom_function
          /  number
 
         atom_unary = number space unaryop
-        atom_root = (("the "? "square root" " of"?)/"root"/"route"/"√") " "? number
+        atom_square_root = (("the "? "square root" " of"?)/"root"/"route"/"√") space number
+        atom_cube_root = (("the "? "cube root" " of"?)) space number
+        atom_root  = "the "? ordinal space "root of" space number
         atom_function = (gcd/lcm) space terms space "and" space terms
 
         unaryop
@@ -72,6 +76,9 @@ grammar = Grammar("""
          / ("eight"/"ate") 
          / "nine" 
          / "zero" 
+
+        ordinal
+         = digit ("st"/"nd"/"rd"/"th")
          
         digit = ~r"[0-9]+"
 
@@ -135,6 +142,9 @@ class HansVisitor(NodeVisitor):
     
     def visit_number(self,node,visited_children):
         return visited_children[0]
+
+    def visit_ordinal(self,node,visited_children):
+        return visited_children[0]
     
     def visit_add(self,*args):
         return '+'
@@ -171,9 +181,17 @@ class HansVisitor(NodeVisitor):
         n,_,op = visited_children
         return unary_ops[op](n)
 
-    def visit_atom_root(self,node,visited_children):
-        n = visited_children[2]
+    def visit_atom_square_root(self,node,visited_children):
+        n = visited_children[-1]
         return math.sqrt(n)
+
+    def visit_atom_cube_root(self,node,visited_children):
+        n = visited_children[-1]
+        return math.pow(n,1/3)
+
+    def visit_atom_root(self,node,visited_children):
+        _,r,_,_,_,n = visited_children
+        return math.pow(n,1/r)
 
     def visit_gcd(self,node,visited_children):
         return 'gcd'

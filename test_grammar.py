@@ -33,13 +33,29 @@ def test_atom_unary():
     for i,o in tests:
         yield what_equals,i,o
 
-def test_atom_root():
+def test_atom_square_root():
     tests = [
         ('the square root of 9',3),
         ('square root of 25',5),
         ('square root 64',8),
         ('root 6',math.sqrt(6)),
         ('√ 4',2),
+    ]
+    for i,o in tests:
+        yield what_equals,i,o
+
+def test_atom_cube_root():
+    tests = [
+        ('the cube root of 8',2),
+        ('cube root 27',3),
+    ]
+    for i,o in tests:
+        yield what_equals,i,o
+
+def test_atom_root():
+    tests = [
+        ('the 2nd root of 25',5),
+        ('the 5th root of 32',2),
     ]
     for i,o in tests:
         yield what_equals,i,o
