@@ -119,13 +119,9 @@ def test_op_power():
     for i,o in tests:
         yield what_equals,i,o
 
-def test_op_all_squared():
-    what_equals('5 squared',25)
-    what_equals('5 all squared',25)
-
 def test_long_expression():
-    what_equals('5 plus 15 divided by 2 squared',5)
-    what_equals('one plus two times two',6) # evaluation goes left-to-right instead of observing order of operations
+    what_equals('5 plus 16 divided by 2 squared',9)
+    what_equals('one plus two times two',5)
 
 def test_what_variants():
     starts = ['what is','what\'s','can you tell me']
