@@ -35,7 +35,10 @@ def handle_phrase(recognizer,audio):
             else:
                 result = int(result)
                 print("It's {}".format(result))
-                clop(result)
+                if result<=100:
+                    clop(result)
+                else:
+                    neigh()
         except ParseError:
             print("Neigh!")
             neigh()

@@ -88,7 +88,22 @@ grammar = Grammar("""
          / "zero" 
 
         ordinal
+         = ordinal_digit / ordinal_word
+
+        ordinal_digit
          = digit ("st"/"nd"/"rd"/"th")
+
+        ordinal_word
+         = "first"
+         / "second"
+         / "third"
+         / "fourth"
+         / "fifth"
+         / "sixth"
+         / "seventh"
+         / "eighth"
+         / "ninth"
+         / "tenth"
          
         digit = ~r"[0-9]+"
 
@@ -126,130 +141,6 @@ function_ops = {
     'lcm': lcm
 }
 
-class HansVisitor1(NodeVisitor):
-    grammar = grammar
-    
-    def visit_space(self,*args):
-        pass
-    
-    def visit_digit(self,node,visited_children):
-        return int(node.text)
-    
-    def visit_number_word(self,node,visited_children):
-        d = {
-            'one': 1,
-            'two': 2, 'to': 2, 'too': 2,
-            'three': 3,
-            'four': 4, 'for': 4,
-            'five': 5,
-            'six': 6,
-            'seven': 7,
-            'eight': 8, 'ate': 8,
-            'nine': 9,
-            'zero': 0
-        }
-        return d[node.text]
-    
-    def visit_number(self,node,visited_children):
-        return visited_children[0]
-
-    def visit_ordinal(self,node,visited_children):
-        return visited_children[0]
-    
-    def visit_add(self,*args):
-        return '+'
-
-    def visit_multiply(self,*args):
-        return '*'
-    
-    def visit_subtract(self,*args):
-        return '-'
-    
-    def visit_divide(self,*args):
-        return '/'
-    
-    def visit_power(self,*args):
-        return '^'
-    
-    def visit_binaryop(self,node,visited_children):
-        return visited_children[0]
-    
-    def visit_atom(self,node,visited_children):
-        return visited_children[0]
-    
-    def visit_op_binary(self,node,visited_children):
-        opname,_,arg = visited_children
-        return (opname,arg)
-
-    def visit_op_all_squared(self,node,visited_children):
-        return ('squared',None)
-
-    def visit_unaryop(self,node,visited_children):
-        return node.text
-
-    def visit_atom_unary(self,node,visited_children):
-        n,_,op = visited_children
-        return unary_ops[op](n)
-
-    def visit_atom_square_root(self,node,visited_children):
-        n = visited_children[-1]
-        return math.sqrt(n)
-
-    def visit_atom_cube_root(self,node,visited_children):
-        n = visited_children[-1]
-        return math.pow(n,1/3)
-
-    def visit_atom_root(self,node,visited_children):
-        _,r,_,_,_,n = visited_children
-        return math.pow(n,1/r)
-
-    def visit_gcd(self,node,visited_children):
-        return 'gcd'
-    def visit_lcm(self,node,visited_children):
-        return 'lcm'
-
-    def visit_atom_function(self,node,visited_children):
-        op,_,a,_,_,_,b = visited_children
-        return function_ops[op](a,b)
-    
-    def visit_op(self,node,visited_children):
-        return visited_children[0]
-    
-    def visit_terms(self,node,visited_children):
-        n = visited_children[0]
-        for op,b in visited_children[1]:
-            if b is None:
-                n = ops[op](n)
-            else:
-                n = ops[op](n,b)
-        return n
-    
-    def visit_next_term(self,node,visited_children):
-        _,op,_ = visited_children
-        return op
-
-    def visit_question_what(self,node,visited_children):
-        return ('what',visited_children[-1])
-    
-    def visit_question_love(self,*args):
-        return ('love',True)
-
-    def visit_question(self,node,visited_children):
-        return visited_children[0]
-    
-    def visit_Expression(self,node,visited_children):
-        return visited_children[-1]
-    
-    def generic_visit(self,node,visited_children):
-        if node.expr_name:
-            return (node.expr_name,visited_children[:])
-        elif all(c.expr_name=='next_term' for c in node.children):
-            return visited_children
-        elif visited_children:
-            return visited_children[0]
-        else:
-            return node.text
-
 class HansVisitor(NodeVisitor):
     grammar = grammar
 
@@ -279,8 +170,25 @@ class HansVisitor(NodeVisitor):
     def visit_number(self,node,visited_children):
         return visited_children[0]
 
-    def visit_ordinal(self,node,visited_children):
+    visit_ordinal = NodeVisitor.lift_child
+
+    def visit_ordinal_digit(self,node,visited_children):
         return visited_children[0]
+
+    def visit_ordinal_word(self,node,visited_children):
+        d = {
+            'first': 1,
+            'second': 2,
+            'third': 3,
+            'fourth': 4,
+            'fifth': 5,
+            'sixth': 6,
+            'seventh': 7,
+            'eighth': 8,
+            'ninth': 9,
+            'tenth': 10,
+        }
+        return d[node.text]
     
     def visit_add(self,*args):
         return '+'
@@ -353,7 +261,6 @@ class HansVisitor(NodeVisitor):
         return 'lcm'
 
     def visit_atom_function(self,node,visited_children):
-        print(visited_children)
         op,_,a,_,_,_,b = visited_children
         op = op[0]
         return function_ops[op](a,b)
