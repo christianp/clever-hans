@@ -4,38 +4,53 @@ from grammar import HansVisitor
 from parsimonious.exceptions import ParseError
 import speech_recognition as sr
 
-from gpiozero import LED
+from gpiozero import LED, Button
 from time import sleep
 
 class Horse(object):
 
     visitor = HansVisitor()
 
-    neigh_button = LED(27)
-    clop_button = LED(17)
+    neigh_switch = LED(27)
+    clop_switch = LED(17)
 
-    def __init__(self):
+    listen_button = Button(22)
+
+    def __init__(self, listen_continuously=True):
         self.recognizer = sr.Recognizer()
         self.mic = sr.Microphone(device_index=2,sample_rate=44100,chunk_size=128)
         with self.mic as source:
             self.recognizer.adjust_for_ambient_noise(source)
 
-        self.start_listening()
+        if listen_continuously:
+            self.start_listening()
+        else:
+            self.wait_for_button()
 
     def start_listening(self):
+        print("Listening continuously")
         def handle(recognizer,audio):
             self.handle_phrase(recognizer,audio)
         self.stop_listening = self.recognizer.listen_in_background(self.mic, handle)
 
+    def wait_for_button(self):
+        print("Listening when button pressed")
+        def do_listen():
+            print("Listening...")
+            with self.mic as source:
+                audio = self.recognizer.listen(self.mic)
+            self.handle_phrase(self.recognizer,audio)
+        self.listen_button.when_pressed = do_listen
+
     def neigh(self):
-        self.neigh_button.on()
+        self.neigh_switch.on()
         sleep(2)
-        self.neigh_button.off()
+        self.neigh_switch.off()
 
     def clop(self,n):
-        self.clop_button.on()
+        self.clop_switch.on()
         sleep(n/2)
-        self.clop_button.off()
+        self.clop_switch.off()
 
     def handle_phrase(self,recognizer,audio):
         print("GOT")
@@ -65,7 +80,7 @@ class Horse(object):
         except sr.RequestError as e:
             print("Could not request results from Google Speech Recognition service; {0}".format(e))
 
-hans = Horse()
+hans = Horse(listen_continuously=False)
 
 while True: 
     sleep(0.1)
